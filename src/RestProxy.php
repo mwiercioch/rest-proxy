@@ -40,9 +40,9 @@ class RestProxy
         $url = $this->request->getPathInfo();
 
         foreach ($this->map as $name => $mapUrl) {
-            if (strpos($url, $name) == 1) {
+            
                 return $this->dispatch($mapUrl . str_replace("/{$name}", NULL, $url));
-            }
+            
         }
 
         throw new \Exception("Not match");
