@@ -15,8 +15,8 @@
     ],
     "require": {
         "ext-curl": "*",
-        "symfony/http-foundation": "dev-master",
-        "symfony/expression-language": "dev-master"
+        "symfony/http-foundation": "2.6.*",
+        "symfony/expression-language": "2.6.*"
     },
     "autoload": {
         "psr-4": {
