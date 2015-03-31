@@ -4,29 +4,43 @@ namespace RestProxy;
 class CurlWrapper
 {
     const HTTP_OK = 200;
-    const USER_AGENT = 'gonzalo123/rest-proxy';
+    const USER_AGENT = 'okinet/rest-proxy';
 
     private $responseHeaders = [];
     private $status;
+    private $postParams = [];
 
     public function doGet($url, $queryString = NULL)
     {
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, is_null($queryString) ? $url : $url . '?' . $queryString);
-
+        $headers = ["User-Agent: " . self::USER_AGENT];
+        curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
         return $this->doMethod($s);
     }
 
+    public function setPayloadParameters() {
+        $this->postParams = file_get_contents('php://input');
+    }
     public function doPost($url, $queryString = NULL)
     {
-        $s = curl_init();
-        curl_setopt($s, CURLOPT_URL, $url);
-        curl_setopt($s, CURLOPT_POST, TRUE);
-        if (!is_null($queryString)) {
-            curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
-        }
+        $url = is_null($queryString) ? $url : $url . '?' . $queryString;
+        $s = curl_init($url);
+        curl_setopt($s, CURLOPT_CUSTOMREQUEST, "POST");
+        $this->setPayloadParameters();
+
+        curl_setopt($s, CURLOPT_POSTFIELDS, $this->postParams);
+        curl_setopt($s, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($s, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($this->postParams),
+            'User-Agent: ' . self::USER_AGENT
+            )
+        );
 
         return $this->doMethod($s);
+
+
     }
 
     public function doPut($url, $queryString = NULL)
@@ -37,6 +51,9 @@ class CurlWrapper
         if (!is_null($queryString)) {
             curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
         }
+
+        $headers = ["User-Agent: " . self::USER_AGENT];
+        curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
 
         return $this->doMethod($s);
     }
@@ -49,14 +66,14 @@ class CurlWrapper
         if (!is_null($queryString)) {
             curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
         }
+        $headers = ["User-Agent: " . self::USER_AGENT];
+        curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
 
         return $this->doMethod($s);
     }
 
     private function doMethod($s)
     {
-        $headers = ["User-Agent: " . self::USER_AGENT];
-        curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($s, CURLOPT_HEADER, TRUE);
         curl_setopt($s, CURLOPT_RETURNTRANSFER, TRUE);
         $out                   = curl_exec($s);

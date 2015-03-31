@@ -12,6 +12,8 @@ class RestProxy
     private $content;
     private $headers;
 
+    private $format;
+
     const GET = "GET";
     const POST = "POST";
     const DELETE = "DELETE";
@@ -24,10 +26,11 @@ class RestProxy
         self::PUT    => 'doPut',
     ];
 
-    public function __construct(Request $request, CurlWrapper $curl)
+    public function __construct(Request $request, CurlWrapper $curl, $format = 'json')
     {
         $this->request = $request;
         $this->curl    = $curl;
+        $this->format  = $format;
     }
 
     public function register($name, $url)
@@ -60,7 +63,8 @@ class RestProxy
 
     private function dispatch($url)
     {
-        $queryString = $this->request->getQueryString();
+        $queryString = $this->request->getQueryString().'&format='.$this->format;
+
         $action      = $this->getActionName($this->request->getMethod());
 
         $this->content = $this->curl->$action($url, $queryString);
