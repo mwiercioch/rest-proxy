@@ -14,7 +14,13 @@ class CurlWrapper
     {
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, is_null($queryString) ? $url : $url . '?' . $queryString);
-        $headers = ["User-Agent: " . self::USER_AGENT];
+
+        $headers = array_merge(
+            array(
+                'User-Agent: ' . self::USER_AGENT
+            ), $this->getClientHeaders()
+        );
+
         curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
         return $this->doMethod($s);
     }
@@ -22,6 +28,18 @@ class CurlWrapper
     public function setPayloadParameters() {
         $this->postParams = file_get_contents('php://input');
     }
+
+    public function getClientHeaders() {
+        $result = array();
+        $disabled = array('Content-Type', 'Content-Length', 'User-Agent', 'Host', 'Connection', 'Origin');
+        foreach(getallheaders() as $name=>$value) {
+            if(!in_array($name, $disabled)) {
+                $result[] = $name.': '.$value;
+            }
+        }
+        return $result;
+    }
+
     public function doPost($url, $queryString = NULL)
     {
         $url = is_null($queryString) ? $url : $url . '?' . $queryString;
@@ -31,12 +49,16 @@ class CurlWrapper
 
         curl_setopt($s, CURLOPT_POSTFIELDS, $this->postParams);
         curl_setopt($s, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($s, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($this->postParams),
-            'User-Agent: ' . self::USER_AGENT
-            )
+
+        $headers = array_merge(
+            array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($this->postParams),
+                'User-Agent: ' . self::USER_AGENT
+            ), $this->getClientHeaders()
         );
+
+        curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
 
         return $this->doMethod($s);
 
@@ -52,7 +74,12 @@ class CurlWrapper
             curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
         }
 
-        $headers = ["User-Agent: " . self::USER_AGENT];
+        $headers = array_merge(
+            array(
+                'User-Agent: ' . self::USER_AGENT
+            ), $this->getClientHeaders()
+        );
+
         curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
 
         return $this->doMethod($s);
@@ -66,7 +93,13 @@ class CurlWrapper
         if (!is_null($queryString)) {
             curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
         }
-        $headers = ["User-Agent: " . self::USER_AGENT];
+
+        $headers = array_merge(
+            array(
+                'User-Agent: ' . self::USER_AGENT
+            ), $this->getClientHeaders()
+        );
+
         curl_setopt($s, CURLOPT_HTTPHEADER, $headers);
 
         return $this->doMethod($s);
