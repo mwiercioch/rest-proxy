@@ -70,12 +70,16 @@ class CurlWrapper
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, $url);
         curl_setopt($s, CURLOPT_CUSTOMREQUEST, 'PUT');
-        if (!is_null($queryString)) {
-            curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
-        }
+        $this->setPayloadParameters();
+
+        curl_setopt($s, CURLOPT_POSTFIELDS, $this->postParams);
+        curl_setopt($s, CURLOPT_RETURNTRANSFER, true);
+
 
         $headers = array_merge(
             array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($this->postParams),
                 'User-Agent: ' . self::USER_AGENT
             ), $this->getClientHeaders()
         );
@@ -112,24 +116,35 @@ class CurlWrapper
         $out                   = curl_exec($s);
         $this->status          = curl_getinfo($s, CURLINFO_HTTP_CODE);
         $this->responseHeaders = curl_getinfo($s, CURLINFO_HEADER_OUT);
-        curl_close($s);
 
-        list($this->responseHeaders, $content) = $this->decodeOut($out);
+        $header_size = curl_getinfo($s, CURLINFO_HEADER_SIZE);
+        $header = substr($out, 0, $header_size);
+        $content = substr($out, $header_size);
+
+
+
+
+        list($this->responseHeaders, $content) = array(explode("\n", $header), $content);
         if ($this->status != self::HTTP_OK) {
             throw new \Exception("http error: {$this->status}", $this->status);
         }
+
+
 
         return $content;
     }
 
     private function decodeOut($out)
     {
+
+
         // It should be a fancy way to do that :(
         $headersFinished = FALSE;
         $headers         = $content = [];
         $data            = explode("\n", $out);
-        foreach ($data as $line) {
-            if (trim($line) == '') {
+
+        foreach ($data as $key => $line) {
+            if (trim($line) == '' && (array_key_exists($key+1, $data) && strpos($data[$key+1], 'HTTP') === false)) {
                 $headersFinished = TRUE;
             } else {
                 if ($headersFinished === FALSE && strpos($line, ':') > 0) {
