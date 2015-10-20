@@ -50,6 +50,7 @@ class CurlWrapper
 
         curl_setopt($s, CURLOPT_POSTFIELDS, $this->postParams);
         curl_setopt($s, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($s, CURLOPT_ENCODING , "gzip");
 
         $headers = array_merge(
             array(
@@ -71,6 +72,7 @@ class CurlWrapper
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, $url);
         curl_setopt($s, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($s, CURLOPT_ENCODING , "gzip");
         $this->setPayloadParameters();
 
         curl_setopt($s, CURLOPT_POSTFIELDS, $this->postParams);
@@ -95,6 +97,7 @@ class CurlWrapper
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, is_null($queryString) ? $url : $url . '?' . $queryString);
         curl_setopt($s, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($s, CURLOPT_ENCODING , "gzip");
         if (!is_null($queryString)) {
             curl_setopt($s, CURLOPT_POSTFIELDS, parse_str($queryString));
         }
