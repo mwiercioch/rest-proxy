@@ -14,6 +14,7 @@ class CurlWrapper
     {
         $s = curl_init();
         curl_setopt($s, CURLOPT_URL, is_null($queryString) ? $url : $url . '?' . $queryString);
+        curl_setopt($s,CURLOPT_ENCODING , "gzip");
 
         $headers = array_merge(
             array(
